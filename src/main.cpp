@@ -1,7 +1,11 @@
+#include "vector3.hpp"
 #include <iostream>
-#include <stb_image_write.h>
 
 int main() {
-  std::cout << "Hello world" << '\n';
+  Vector3 a(1.0f, 0.0f, 0.0f);
+  Vector3 b(0.0f, 1.0f, 0.0f);
+
+  std::cout << "a dot b = " << a.dot(b) << "\n";
+
   return 0;
 }
