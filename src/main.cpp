@@ -1,11 +1,12 @@
+#include "geometry/sphere_geometry.hpp"
 #include "vector3.hpp"
 #include <iostream>
 
 int main() {
-  Vector3 a(1.0f, 0.0f, 0.0f);
-  Vector3 b(0.0f, 1.0f, 0.0f);
+  Vector3 vec(1, 1, 1);
+  SphereGeometry sphere(vec, 1);
 
-  std::cout << "a dot b = " << a.dot(b) << "\n";
+  std::cout << sphere.signedDistanceFrom(vec) << "\n";
 
   return 0;
 }
