@@ -2,8 +2,7 @@
 
 #include <cmath>
 
-class Vector3 {
-public:
+struct Vector3 {
   float x, y, z;
 
   Vector3() : x(0), y(0), z(0) {}
