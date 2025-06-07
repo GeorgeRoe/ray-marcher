@@ -10,16 +10,17 @@
 #include <iostream>
 
 int main() {
-  DecimalVector3 vec(10, 10, 10);
-  SphereGeometry sphere(vec, 5);
+  DecimalVector3 vec(10, 0, 0);
+  SphereGeometry sphere(vec, 2);
   Object object(std::make_unique<SphereGeometry>(sphere));
   Scene scene;
 
   scene.addOjbect(std::move(object));
 
-  std::cout << "distance: " << scene.minimumSignedDistanceFrom(vec) << "\n";
-
   Camera camera({}, {1, 0, 0}, {800, 450}, {90, 45});
+
+  std::cout << "distance: "
+            << scene.minimumSignedDistanceFrom(camera.getPosition()) << "\n";
 
   int width = camera.getScreenSize().x;
   int height = camera.getScreenSize().y;
