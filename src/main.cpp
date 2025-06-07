@@ -6,7 +6,7 @@
 #include <iostream>
 
 int main() {
-  Vector3 vec(10, 10, 10);
+  DecimalVector3 vec(10, 10, 10);
   SphereGeometry sphere(vec, 5);
   Object object(std::make_unique<SphereGeometry>(sphere));
 
