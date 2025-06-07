@@ -5,11 +5,15 @@
 #include <iostream>
 
 int main() {
-  Vector3 vec(1, 1, 1);
-  SphereGeometry sphere(vec, 1);
+  Vector3 vec(10, 10, 10);
+  SphereGeometry sphere(vec, 5);
   Object object(std::make_unique<SphereGeometry>(sphere));
 
-  std::cout << object.getGeometryRef().signedDistanceFrom(vec) << "\n";
+  std::cout << "x: " << object.getGeometryRef().centroid().x << "\n";
+  std::cout << "y: " << object.getGeometryRef().centroid().y << "\n";
+  std::cout << "z: " << object.getGeometryRef().centroid().z << "\n";
+
+  std::cout << "distance: " << object.getGeometryRef().signedDistanceFrom(vec) << "\n";
 
   return 0;
 }
