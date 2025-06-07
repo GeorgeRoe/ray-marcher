@@ -1,4 +1,5 @@
 #include "geometry/sphere_geometry.hpp"
+#include "camera.hpp"
 #include "vector3.hpp"
 #include "object.hpp"
 
@@ -14,6 +15,8 @@ int main() {
   std::cout << "z: " << object.getGeometryRef().centroid().z << "\n";
 
   std::cout << "distance: " << object.getGeometryRef().signedDistanceFrom(vec) << "\n";
+
+  Camera camera({}, {}, {}, {800, 450});
 
   return 0;
 }
