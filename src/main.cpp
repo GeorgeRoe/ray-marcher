@@ -1,6 +1,7 @@
 #include "camera.hpp"
 #include "geometry/sphere_geometry.hpp"
 #include "object.hpp"
+#include "src/scene.hpp"
 #include "vector3.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -12,13 +13,11 @@ int main() {
   DecimalVector3 vec(10, 10, 10);
   SphereGeometry sphere(vec, 5);
   Object object(std::make_unique<SphereGeometry>(sphere));
+  Scene scene;
 
-  std::cout << "x: " << object.getGeometryRef().centroid().x << "\n";
-  std::cout << "y: " << object.getGeometryRef().centroid().y << "\n";
-  std::cout << "z: " << object.getGeometryRef().centroid().z << "\n";
+  scene.addOjbect(std::move(object));
 
-  std::cout << "distance: " << object.getGeometryRef().signedDistanceFrom(vec)
-            << "\n";
+  std::cout << "distance: " << scene.minimumSignedDistanceFrom(vec) << "\n";
 
   Camera camera({}, {1, 0, 0}, {800, 450}, {90, 45});
 
@@ -38,7 +37,8 @@ int main() {
     }
   }
 
-  stbi_write_png("output.png", width, height, channels, pixels.data(), width * channels);
+  stbi_write_png("output.png", width, height, channels, pixels.data(),
+                 width * channels);
 
   return 0;
 }
