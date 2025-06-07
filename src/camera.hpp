@@ -40,6 +40,22 @@ public:
     return rays;
   }
 
+  DecimalVector3 getPosition() const {
+    return position_;
+  }
+
+  DecimalVector3 getDirection() const {
+    return direction_;
+  }
+
+  IntegerVector2 getScreenSize() const {
+    return screen_size_;
+  }
+
+  DecimalVector2 getFov() const {
+    return fov_;
+  }
+
 private:
   DecimalVector3 position_;
   DecimalVector3 direction_;

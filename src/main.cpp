@@ -3,6 +3,9 @@
 #include "object.hpp"
 #include "vector3.hpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include <iostream>
 
 int main() {
@@ -17,19 +20,25 @@ int main() {
   std::cout << "distance: " << object.getGeometryRef().signedDistanceFrom(vec)
             << "\n";
 
-  Camera camera({}, {1, 0, 0}, {90, 45}, {800, 450});
+  Camera camera({}, {1, 0, 0}, {800, 450}, {90, 45});
 
-  for (const Ray &ray : camera.generateRays()) {
-    std::cout << "Ray:\n";
-    std::cout << "Position:\n";
-    std::cout << "x: " << ray.position.x << "\n";
-    std::cout << "y: " << ray.position.y << "\n";
-    std::cout << "z: " << ray.position.z << "\n";
-    std::cout << "Direction:\n";
-    std::cout << "x: " << ray.direction.x << "\n";
-    std::cout << "y: " << ray.direction.y << "\n";
-    std::cout << "z: " << ray.direction.z << "\n";
+  int width = camera.getScreenSize().x;
+  int height = camera.getScreenSize().y;
+  int channels = 3;
+  std::vector<unsigned char> pixels(width * height * channels);
+
+  std::srand(1);
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      int i = (y * width + x) * channels;
+      pixels[i + 0] = std::rand() % 256; // R
+      pixels[i + 1] = std::rand() % 256; // G
+      pixels[i + 2] = std::rand() % 256; // B
+    }
   }
+
+  stbi_write_png("output.png", width, height, channels, pixels.data(), width * channels);
 
   return 0;
 }
