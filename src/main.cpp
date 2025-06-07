@@ -1,8 +1,9 @@
 #include "camera.hpp"
 #include "geometry/sphere_geometry.hpp"
 #include "object.hpp"
-#include "src/scene.hpp"
+#include "scene.hpp"
 #include "vector3.hpp"
+#include "rgb.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -25,21 +26,24 @@ int main() {
   int width = camera.getScreenSize().x;
   int height = camera.getScreenSize().y;
   int channels = 3;
-  std::vector<unsigned char> pixels(width * height * channels);
 
-  std::srand(1);
+  std::vector<RGB> pixels(width * height);
+
+  std::srand(0);
 
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      int i = (y * width + x) * channels;
-      pixels[i + 0] = std::rand() % 256; // R
-      pixels[i + 1] = std::rand() % 256; // G
-      pixels[i + 2] = std::rand() % 256; // B
+      int i = y * width + x;
+      pixels[i] = RGB(
+        std::rand() % 256,
+        std::rand() % 256,
+        std::rand() % 256
+      );
     }
   }
 
-  stbi_write_png("output.png", width, height, channels, pixels.data(),
-                 width * channels);
+  stbi_write_png("output.png", width, height, channels,
+                 static_cast<void*>(pixels.data()), width * channels);
 
   return 0;
 }
