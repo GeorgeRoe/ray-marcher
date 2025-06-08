@@ -2,10 +2,30 @@
 
 #include "vector3.hpp"
 
-struct Ray {
-  DecimalVector3 position;
-  DecimalVector3 direction;
+class Ray {
+public:
+  Ray(const DecimalVector3 &position, const DecimalVector3 &direction)
+      : position_(position), direction_(direction.normalised()), distance_travelled_(0) {}
 
-  Ray(const DecimalVector3 &position_, const DecimalVector3 &direction_)
-      : position(position_), direction(direction_.normalised()) {}
+  void march(Decimal distance) {
+    position_ = position_ + (direction_ * distance);
+    distance_travelled_ += distance;
+  }
+
+  DecimalVector3 getPosition() const {
+    return position_;
+  }
+  
+  DecimalVector3 getDirection() const {
+    return direction_;
+  }
+
+  Decimal getDistanceTravelled() const {
+    return distance_travelled_;
+  }
+
+private:
+  DecimalVector3 position_;
+  DecimalVector3 direction_;
+  Decimal distance_travelled_;
 };

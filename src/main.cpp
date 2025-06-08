@@ -1,9 +1,10 @@
 #include "camera.hpp"
 #include "geometry/sphere_geometry.hpp"
 #include "object.hpp"
+#include "rgb.hpp"
 #include "scene.hpp"
 #include "vector3.hpp"
-#include "rgb.hpp"
+#include <algorithm>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -11,39 +12,56 @@
 #include <iostream>
 
 int main() {
+  Scene scene;
+
   DecimalVector3 vec(10, 0, 0);
   SphereGeometry sphere(vec, 2);
   Object object(std::make_unique<SphereGeometry>(sphere));
-  Scene scene;
-
   scene.addOjbect(std::move(object));
 
-  Camera camera({}, {1, 0, 0}, {800, 450}, {90, 45});
+  SphereGeometry another_sphere({2, 1, 2}, 1);
+  Object another_object(std::make_unique<SphereGeometry>(another_sphere));
+  scene.addOjbect(std::move(another_object));
 
-  std::cout << "distance: "
-            << scene.minimumSignedDistanceFrom(camera.getPosition()) << "\n";
+  IntegerVector2 resolution = {1920, 1080};
+  Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
+
+  Decimal horizontal_fov = 90 * (M_PI / 180.0);
+  Decimal vertical_fov = horizontal_fov * aspect_ratio;
+  DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
+
+  Camera camera({}, {1, 0, 0}, resolution, fov);
 
   int width = camera.getScreenSize().x;
   int height = camera.getScreenSize().y;
   int channels = 3;
 
-  std::vector<RGB> pixels(width * height);
+  std::vector<RGB> pixels;
 
-  std::srand(0);
+  Decimal max_distance = 100;
+  Decimal min_distance = 0.00001;
 
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      int i = y * width + x;
-      pixels[i] = RGB(
-        std::rand() % 256,
-        std::rand() % 256,
-        std::rand() % 256
-      );
+  for (Ray &ray : camera.generateRays()) {
+    RGB color;
+    int steps = 0;
+    while (ray.getDistanceTravelled() < max_distance) {
+      Decimal minimum_signed_distance =
+          scene.minimumSignedDistanceFrom(ray.getPosition());
+
+      if (minimum_signed_distance < min_distance) {
+        color.r = std::max(255 - steps * 5, 0);
+        break;
+      }
+
+      ray.march(minimum_signed_distance);
+      steps++;
     }
+
+    pixels.push_back(color);
   }
 
   stbi_write_png("output.png", width, height, channels,
-                 static_cast<void*>(pixels.data()), width * channels);
+                 static_cast<void *>(pixels.data()), width * channels);
 
   return 0;
 }
