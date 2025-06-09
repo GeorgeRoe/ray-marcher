@@ -51,5 +51,10 @@ struct Vector3 {
   }
 };
 
+template <typename T>
+Vector3<T> operator*(T scalar, const Vector3<T>& vec) {
+  return vec * scalar;
+}
+
 using DecimalVector3 = Vector3<Decimal>;
 using IntegerVector3 = Vector3<int>;

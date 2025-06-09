@@ -4,9 +4,8 @@
 #include "rgb.hpp"
 #include "scene.hpp"
 #include "src/march_options.hpp"
+#include "src/material.hpp"
 #include "vector3.hpp"
-#include <algorithm>
-#include <limits>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -14,14 +13,15 @@
 int main() {
   Scene scene;
 
-  DecimalVector3 vec(10, 0, 0);
-  SphereGeometry sphere(vec, 2);
-  Object object(std::make_unique<SphereGeometry>(sphere), {{255,0,0}});
-  scene.addOjbect(std::move(object));
+  SphereGeometry red_geom({7, 0, 0}, 1.5);
+  Material red_mat({255, 0, 0}, 64, 0.8);
+  Object red_sphere(std::make_unique<SphereGeometry>(red_geom), red_mat);
+  scene.addOjbect(std::move(red_sphere));
 
-  SphereGeometry another_sphere({2, 1, 2}, 1);
-  Object another_object(std::make_unique<SphereGeometry>(another_sphere), {{0,255,0}});
-  scene.addOjbect(std::move(another_object));
+  SphereGeometry green_geom({6, 2, 0}, 1);
+  Material green_mat({0, 255, 0}, 8, 0.0);
+  Object green_sphere(std::make_unique<SphereGeometry>(green_geom), green_mat);
+  scene.addOjbect(std::move(green_sphere));
 
   IntegerVector2 resolution = {1920, 1080};
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;

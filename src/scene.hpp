@@ -45,6 +45,19 @@ public:
     return closest_result;
   }
 
+  DecimalVector3 estimateNormal(const DecimalVector3& p) {
+    Decimal epsilon = 0.0001;
+
+    Decimal dx = minimumSignedDistanceFrom(p + DecimalVector3(epsilon, 0, 0))->minimum_signed_distance -
+                minimumSignedDistanceFrom(p - DecimalVector3(epsilon, 0, 0))->minimum_signed_distance;
+    Decimal dy = minimumSignedDistanceFrom(p + DecimalVector3(0, epsilon, 0))->minimum_signed_distance -
+                minimumSignedDistanceFrom(p - DecimalVector3(0, epsilon, 0))->minimum_signed_distance;
+    Decimal dz = minimumSignedDistanceFrom(p + DecimalVector3(0, 0, epsilon))->minimum_signed_distance -
+                minimumSignedDistanceFrom(p - DecimalVector3(0, 0, epsilon))->minimum_signed_distance;
+
+    return DecimalVector3(dx, dy, dz).normalised();
+  }
+
 private:
   std::vector<Object> objects_;
 };
