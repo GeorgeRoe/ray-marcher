@@ -5,6 +5,7 @@
 #include "scene.hpp"
 #include "vector3.hpp"
 #include <algorithm>
+#include <limits>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -38,15 +39,18 @@ int main() {
 
   std::vector<RGB> pixels;
 
-  Decimal max_distance = 100;
+  Decimal max_distance = 10000;
   Decimal min_distance = 0.00001;
 
   for (Ray &ray : camera.generateRays()) {
     RGB color;
     int steps = 0;
+    Decimal closest_distance = std::numeric_limits<Decimal>::max();
     while (ray.getDistanceTravelled() < max_distance) {
       Decimal minimum_signed_distance =
           scene.minimumSignedDistanceFrom(ray.getPosition());
+
+      closest_distance = std::max(Decimal(0), std::min(minimum_signed_distance, closest_distance));
 
       if (minimum_signed_distance < min_distance) {
         color.r = std::max(255 - steps * 5, 0);
@@ -57,6 +61,10 @@ int main() {
       steps++;
     }
 
+    Decimal glow_radius = 0.2;
+    closest_distance = std::min(glow_radius, std::max(Decimal(0), closest_distance));
+    Decimal glow_color = 255 * (Decimal(1) - closest_distance / glow_radius);
+    color.b = std::max(0, std::min(int(glow_color), 255));
     pixels.push_back(color);
   }
 
