@@ -14,15 +14,17 @@
 int main() {
   Scene scene;
 
-  MandelbulbGeometry geom({2, 0, 0}, 1);
+  MandelbulbGeometry geom({1.5, -0.5, -0.5}, 1);
   Material mat({255, 0, 0}, 64, 0.8);
   Object obj(std::make_unique<MandelbulbGeometry>(geom), mat);
   scene.addOjbect(std::move(obj));
 
-  IntegerVector2 resolution = {3840, 2560};
+  // IntegerVector2 resolution = {1920, 1080};
+  // IntegerVector2 resolution = {3840, 2560};
+  IntegerVector2 resolution = {8000, 4500};
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
 
-  Decimal horizontal_fov = 90 * (M_PI / 180.0);
+  Decimal horizontal_fov = 30 * (M_PI / 180.0);
   Decimal vertical_fov = horizontal_fov * aspect_ratio;
   DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
 
