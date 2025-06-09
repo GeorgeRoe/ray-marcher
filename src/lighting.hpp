@@ -3,6 +3,7 @@
 #include "vector3.hpp"
 #include "rgb.hpp"
 #include "material.hpp"
+#include <cstdlib>
 
 namespace Lighting {
   RGB applyLighting(const DecimalVector3& position, const DecimalVector3& normal,
@@ -18,5 +19,21 @@ namespace Lighting {
     RGB specular = light_color * spec;
 
     return (diffuse + specular) * 0.2;
+  }
+
+  RGB normalToRGB(const DecimalVector3& normal) {
+    return RGB(
+      std::abs(normal.x) * 255,
+      std::abs(normal.y) * 255,
+      std::abs(normal.z) * 255
+    );
+  }
+
+  RGB normalToRGBDirectional(const DecimalVector3& normal) {
+    return RGB(
+      (normal.x + 1) * 255 / 2, 
+      (normal.y + 1) * 255 / 2, 
+      (normal.z + 1) * 255 / 2
+    );
   }
 }

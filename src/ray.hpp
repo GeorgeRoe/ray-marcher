@@ -74,7 +74,8 @@ public:
 
     DecimalVector3 normal = scene.estimateNormal(getPosition());
 
-    RGB lighting = Lighting::applyLighting(getPosition(), normal, direction_ * -1, material);
+    // RGB lighting = Lighting::applyLighting(getPosition(), normal, direction_ * -1, material);
+    RGB lighting = Lighting::normalToRGBDirectional(normal);
 
     RGB reflected_color;
     if (material.reflectivity > 0) {
