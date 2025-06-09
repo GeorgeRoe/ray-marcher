@@ -1,11 +1,12 @@
 #include "camera.hpp"
-#include "geometry/sphere_geometry.hpp"
 #include "object.hpp"
 #include "rgb.hpp"
 #include "scene.hpp"
+#include "src/geometry/mandelbulb_geometry.hpp"
 #include "src/march_options.hpp"
 #include "src/material.hpp"
 #include "vector3.hpp"
+#include <memory>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -13,17 +14,12 @@
 int main() {
   Scene scene;
 
-  SphereGeometry red_geom({7, 0, 0}, 1.5);
-  Material red_mat({255, 0, 0}, 64, 0.8);
-  Object red_sphere(std::make_unique<SphereGeometry>(red_geom), red_mat);
-  scene.addOjbect(std::move(red_sphere));
+  MandelbulbGeometry geom({2, 0, 0}, 1);
+  Material mat({255, 0, 0}, 64, 0.8);
+  Object obj(std::make_unique<MandelbulbGeometry>(geom), mat);
+  scene.addOjbect(std::move(obj));
 
-  SphereGeometry green_geom({6, 2, 0}, 1);
-  Material green_mat({0, 255, 0}, 8, 0.0);
-  Object green_sphere(std::make_unique<SphereGeometry>(green_geom), green_mat);
-  scene.addOjbect(std::move(green_sphere));
-
-  IntegerVector2 resolution = {1920, 1080};
+  IntegerVector2 resolution = {3840, 2560};
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
 
   Decimal horizontal_fov = 90 * (M_PI / 180.0);
