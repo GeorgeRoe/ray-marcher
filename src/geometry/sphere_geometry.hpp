@@ -11,7 +11,7 @@ public:
     return center_;
   }
 
-  Decimal signedDistanceFrom(DecimalVector3 point) const override {
+  Decimal minimumSignedDistanceFrom(DecimalVector3 point) const override {
     return (point - center_).length() - radius_;
   }
 
