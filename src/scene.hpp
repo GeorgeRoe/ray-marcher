@@ -16,8 +16,8 @@ class Scene {
 public:
   Scene() : objects_() {}
 
-  void addOjbect(Object object) {
-    objects_.emplace_back(std::move(object));
+  void addObject(Object&& object) {
+    objects_.push_back(std::move(object));
   }
 
   std::vector<SceneQueryResult> objectsMinimumSignedDistancesFrom(DecimalVector3 point) {
@@ -43,6 +43,10 @@ public:
     }
 
     return closest_result;
+  }
+
+  const std::vector<Object>& getObjects() const {
+    return objects_;
   }
 
   DecimalVector3 estimateNormal(const DecimalVector3& point) {

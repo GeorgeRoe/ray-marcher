@@ -12,16 +12,16 @@ struct RGB {
 
   RGB operator+(const RGB& other) const {
     return RGB(
-      std::min<int>(r + other.r, 255),
-      std::min<int>(g + other.g, 255),
-      std::min<int>(b + other.b, 255)
+      std::clamp<int>(r + other.r, 0, 255),
+      std::clamp<int>(g + other.g, 0, 255),
+      std::clamp<int>(b + other.b, 0, 255)
     );
   }
 
   RGB& operator+=(const RGB& other) {
-    r = std::min<int>(r + other.r, 255);
-    g = std::min<int>(g + other.g, 255);
-    b = std::min<int>(b + other.b, 255);
+    r = std::clamp<int>(r + other.r, 0, 255);
+    g = std::clamp<int>(g + other.g, 0, 255);
+    b = std::clamp<int>(b + other.b, 0, 255);
     return *this;
   }
 

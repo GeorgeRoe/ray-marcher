@@ -6,15 +6,18 @@
 
 class Object {
 public:
-  Object(std::unique_ptr<Geometry> geometry, Material material) : geometry_(std::move(geometry)), material_(material) {}
+  Object(std::unique_ptr<Geometry> geometry, Material material)
+      : geometry_(std::move(geometry)), material_(material) {}
 
-  const Geometry& getGeometryRef() const {
-    return *geometry_;
-  }
+  Object(Object &&) = default;
+  Object &operator=(Object &&) = default;
 
-  const Material getMaterial() const {
-    return material_;
-  }
+  Object(const Object &) = delete;
+  Object &operator=(const Object &) = delete;
+
+  const Geometry &getGeometryRef() const { return *geometry_; }
+
+  const Material getMaterial() const { return material_; }
 
 private:
   std::unique_ptr<Geometry> geometry_;
