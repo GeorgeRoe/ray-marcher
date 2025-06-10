@@ -15,27 +15,17 @@ int main() {
   Scene scene;
 
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(7, 0, -1.5), 1),
-    Material(RGB(255, 100, 100), 0.25, {0, 0, 0})
+    std::make_unique<MandelbulbGeometry>(DecimalVector3(1, 0.5, 0.5), 1),
+    Material(RGB(0, 150, 200), 0.25, {0, 0, 0})
   ));
 
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(7, 0, 1.5), 1),
-    Material(RGB(100, 100, 255), 0, {0, 0, 0})
-  ));
-
-  scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(5, 2, 0), 1),
-    Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
-  ));
-
-  scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(5, -2, 0), 1),
+    std::make_unique<SphereGeometry>(DecimalVector3(-2, -2, -2), 0.75),
     Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
   ));
 
   IntegerVector2 resolution = {80, 45};
-  int scale = 100;
+  int scale = 10;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
@@ -44,7 +34,7 @@ int main() {
   Decimal vertical_fov = horizontal_fov * aspect_ratio;
   DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
 
-  Camera camera({2, 0, 0}, {1, 0, 0}, resolution, fov);
+  Camera camera({}, {1, 0, 0}, resolution, fov);
 
   int width = camera.getScreenSize().x;
   int height = camera.getScreenSize().y;
@@ -59,8 +49,18 @@ int main() {
     100
   };
 
-  for (Ray &ray : camera.generateRays()) {
+  auto rays = camera.generateRays();
+  const size_t total_rays = rays.size();
+  size_t processed_rays = 0;
+
+  std::cout << "Progress: 0% complete" << std::flush;
+  for (Ray &ray : rays) {
     pixels.push_back(ray.march(scene, march_options).toRGB());
+    processed_rays++;
+
+    if (processed_rays % (total_rays / 100) == 0 || processed_rays == total_rays) {
+      std::cout << "\rProgress: " << (processed_rays * 100 / total_rays) << "% complete" << std::flush;
+    }
   }
 
   stbi_write_png("output.png", width, height, channels,
