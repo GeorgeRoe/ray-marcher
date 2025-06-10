@@ -29,7 +29,7 @@ int main() {
   ));
 
   IntegerVector2 resolution = {80, 80};
-  int scale = 20;
+  int scale = 100;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
@@ -51,9 +51,10 @@ int main() {
 
   std::vector<RGB> pixels(rays.size());
 
-  int n = std::thread::hardware_concurrency();
+  int total_threads = std::thread::hardware_concurrency();
+  std::cout << "Using " << total_threads << " threads.\n";
 
-  Decimal chunk_size = rays.size() / Decimal(n);
+  Decimal chunk_size = rays.size() / Decimal(total_threads);
 
   std::vector<size_t> starting_indexes = {};
   for (Decimal i = 0; i < rays.size(); i += chunk_size) {
@@ -76,17 +77,30 @@ int main() {
   srand(0);
   std::vector<size_t> randomness(pixels.size());
   for (size_t i = 0; i < pixels.size(); ++i) {
+    randomness.at(i) = i;
+  }
+
+  for (size_t i = 0; i < pixels.size(); ++i) {
     size_t random = rand() % pixels.size();
 
-    randomness.at(i) = random;
-    randomness.at(random) = i;
+    size_t temp = randomness.at(i);
+    randomness.at(i) = randomness.at(random);
+    randomness.at(random) = temp;
   }
+
+  size_t processed_rays = 0;
+  const size_t total_rays = rays.size();
+  std::cout << "Progress: 0%\n";
 
   std::vector<std::thread> threads;
   for (const auto& index_bounds: indexes) {
     threads.emplace_back([&]() {
       for (size_t i = index_bounds.first; i <= index_bounds.second; ++i) {
         pixels.at(randomness.at(i)) = rays.at(randomness.at(i)).march(scene, march_options).toRGB();
+        processed_rays++;
+        if (processed_rays % (total_rays / 100) == 0 || processed_rays == total_rays) {
+          std::cout << "Progress: " << (processed_rays * 100 / total_rays) << "%\n";
+        }
       }
     });
   }
@@ -94,6 +108,7 @@ int main() {
   for (auto& thread : threads) {
     thread.join();
   }
+  std::cout << "\rProgress: 100%\n";
 
   int width = camera.getScreenSize().x;
   int height = camera.getScreenSize().y;

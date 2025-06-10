@@ -2,4 +2,4 @@
 
 meson setup --wipe build --buildtype=release -Dcpp_args='-O3'
 meson compile -C build
-./build/ray-marcher
+time ./build/ray-marcher
