@@ -1,4 +1,4 @@
 #pragma once
 
 // using Decimal = float;
-using Decimal = long double;
+using Decimal = double;

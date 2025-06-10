@@ -7,56 +7,92 @@
 #include "src/march_options.hpp"
 #include "src/material.hpp"
 #include "vector3.hpp"
+#include <cstdlib>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+
+#include <thread>
+#include <utility>
 
 int main() {
   Scene scene;
 
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(1, 0.5, 0.5), 1),
-    Material(RGB(0, 150, 200), 0.25, {0, 0, 0})
+    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 20, 8),
+    Material(RGB(255, 0, 200), 0, {0, 0, 0})
   ));
 
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(-2, -2, -2), 0.75),
+    std::make_unique<SphereGeometry>(DecimalVector3(1, 2, 0), 0.5),
     Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
   ));
 
-  IntegerVector2 resolution = {80, 45};
-  int scale = 10;
+  IntegerVector2 resolution = {80, 80};
+  int scale = 20;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
 
-  Decimal horizontal_fov = 90 * (M_PI / 180.0);
+  Decimal horizontal_fov = 50 * (M_PI / 180.0);
   Decimal vertical_fov = horizontal_fov * aspect_ratio;
   DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
 
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
-  std::vector<RGB> pixels;
-
   MarchOptions march_options{
     1000,
-    0.001,
+    0.0001,
     10000,
     100
   };
 
   auto rays = camera.generateRays();
-  const size_t total_rays = rays.size();
-  size_t processed_rays = 0;
 
-  std::cout << "Progress: 0% complete" << std::flush;
-  for (Ray &ray : rays) {
-    pixels.push_back(ray.march(scene, march_options).toRGB());
-    processed_rays++;
+  std::vector<RGB> pixels(rays.size());
 
-    if (processed_rays % (total_rays / 100) == 0 || processed_rays == total_rays) {
-      std::cout << "\rProgress: " << (processed_rays * 100 / total_rays) << "% complete" << std::flush;
-    }
+  int n = std::thread::hardware_concurrency();
+
+  Decimal chunk_size = rays.size() / Decimal(n);
+
+  std::vector<size_t> starting_indexes = {};
+  for (Decimal i = 0; i < rays.size(); i += chunk_size) {
+    starting_indexes.push_back(static_cast<size_t>(i));
+  }
+
+  std::vector<size_t> ending_indexes = {};
+  for (size_t i = 0; i < starting_indexes.size(); ++i) {
+    if (i == 0) continue;
+
+    ending_indexes.push_back(starting_indexes.at(i) - 1);
+  }
+  ending_indexes.push_back(rays.size() - 1);
+
+  std::vector<std::pair<size_t, size_t>> indexes;
+  for (size_t i = 0; i < starting_indexes.size(); ++i) {
+    indexes.push_back({starting_indexes.at(i), ending_indexes.at(i)});
+  }
+
+  srand(0);
+  std::vector<size_t> randomness(pixels.size());
+  for (size_t i = 0; i < pixels.size(); ++i) {
+    size_t random = rand() % pixels.size();
+
+    randomness.at(i) = random;
+    randomness.at(random) = i;
+  }
+
+  std::vector<std::thread> threads;
+  for (const auto& index_bounds: indexes) {
+    threads.emplace_back([&]() {
+      for (size_t i = index_bounds.first; i <= index_bounds.second; ++i) {
+        pixels.at(randomness.at(i)) = rays.at(randomness.at(i)).march(scene, march_options).toRGB();
+      }
+    });
+  }
+
+  for (auto& thread : threads) {
+    thread.join();
   }
 
   int width = camera.getScreenSize().x;

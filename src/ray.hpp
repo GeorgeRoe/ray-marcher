@@ -27,7 +27,7 @@ public:
     return distance_travelled_;
   }
 
-  Color march(Scene& scene, MarchOptions march_options, int depth = 0) {
+  Color march(Scene& scene, const MarchOptions march_options, int depth = 0) {
     if (depth > march_options.max_depth) {
       return Color();
     }
