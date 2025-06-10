@@ -54,7 +54,7 @@ public:
 
     Decimal distance = closest.has_value() ? closest.value().minimum_signed_distance : std::numeric_limits<Decimal>::max();
 
-    Decimal epsilon = std::min(distance * 0.001, Decimal(1e-6));
+    Decimal epsilon = std::min<Decimal>(distance * 0.001, Decimal(1e-6));
 
     Decimal dx = minimumSignedDistanceFrom(point + DecimalVector3(epsilon, 0, 0))->minimum_signed_distance -
                 minimumSignedDistanceFrom(point - DecimalVector3(epsilon, 0, 0))->minimum_signed_distance;

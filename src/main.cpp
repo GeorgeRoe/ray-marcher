@@ -36,10 +36,6 @@ int main() {
 
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
-  int width = camera.getScreenSize().x;
-  int height = camera.getScreenSize().y;
-  int channels = 3;
-
   std::vector<RGB> pixels;
 
   MarchOptions march_options{
@@ -62,6 +58,10 @@ int main() {
       std::cout << "\rProgress: " << (processed_rays * 100 / total_rays) << "% complete" << std::flush;
     }
   }
+
+  int width = camera.getScreenSize().x;
+  int height = camera.getScreenSize().y;
+  int channels = 3;
 
   stbi_write_png("output.png", width, height, channels,
                  static_cast<void *>(pixels.data()), width * channels);
