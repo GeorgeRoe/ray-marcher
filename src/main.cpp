@@ -15,17 +15,17 @@ int main() {
 
   scene.addObject(Object(
     std::make_unique<SphereGeometry>(DecimalVector3(7, 0, -1.5), 1),
-    Material(RGB(255, 100, 100), 16.0, 0.5, {0, 0, 0})
+    Material(RGB(255, 100, 100), 0, {0, 0, 0})
   ));
 
   scene.addObject(Object(
     std::make_unique<SphereGeometry>(DecimalVector3(7, 0, 1.5), 1),
-    Material(RGB(100, 100, 255), 16.0, 0.5, {0, 0, 0})
+    Material(RGB(100, 100, 255), 0.5, {0, 0, 0})
   ));
 
   scene.addObject(Object(
     std::make_unique<SphereGeometry>(DecimalVector3(5, 2, 0), 0.1),
-    Material({0, 0, 0}, 0.0, 0.0, RGB(255, 255, 255))
+    Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
   ));
 
   IntegerVector2 resolution = {80, 45};
