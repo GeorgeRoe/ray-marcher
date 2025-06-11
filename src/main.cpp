@@ -7,7 +7,6 @@
 #include "src/march_options.hpp"
 #include "src/material.hpp"
 #include "vector3.hpp"
-#include <cstdlib>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -19,7 +18,7 @@ int main() {
   Scene scene;
 
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 100, 15),
+    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 125, 15),
     Material(RGB(255, 255, 255), 0.4, {0, 0, 0})
   ));
 
@@ -33,7 +32,7 @@ int main() {
   ));
 
   IntegerVector2 resolution = {80, 80};
-  int scale = 1;
+  int scale = 100;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
@@ -46,16 +45,16 @@ int main() {
 
   MarchOptions march_options{
     10000000,
-    0.0001,
+    0.000001,
     15,
-    5000 
+    6000 
   };
 
   auto rays = camera.generateRays();
 
   std::vector<RGB> pixels(rays.size());
 
-  int total_threads = std::thread::hardware_concurrency() - 4;
+  int total_threads = std::thread::hardware_concurrency();
   std::cout << "Using " << total_threads << " threads.\n";
 
   Decimal chunk_size = rays.size() / Decimal(total_threads);
@@ -100,7 +99,7 @@ int main() {
   int height = camera.getScreenSize().y;
   int channels = 3;
 
-  size_t write_frequency = 10;
+  size_t write_frequency = 1;
 
   std::vector<std::thread> threads;
   for (const auto& index_bounds: indexes) {
@@ -114,7 +113,8 @@ int main() {
           std::cout << "Progress: " << progress << "%\n";
           if (progress % write_frequency == 0) {
             std::cout << "image written\n";
-            stbi_write_png(std::format("output-{}.png", processed_rays * 100 / total_rays).c_str(), width, height, channels,
+            std::string filename = "output-" + std::to_string(progress) + ".png";
+            stbi_write_png(filename.c_str(), width, height, channels,
                            static_cast<void *>(pixels.data()), width * channels);
           }
         }
