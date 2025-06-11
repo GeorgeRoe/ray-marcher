@@ -19,12 +19,12 @@ int main() {
   Scene scene;
 
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 20, 8),
-    Material(RGB(255, 0, 200), 0, {0, 0, 0})
+    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 100, 15),
+    Material(RGB(150, 250, 50), 0, {0, 0, 0})
   ));
 
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(1, 2, 0), 0.5),
+    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 0), 0.5),
     Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
   ));
 
@@ -41,17 +41,17 @@ int main() {
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
   MarchOptions march_options{
-    1000,
-    0.0001,
-    10000,
-    100
+    1000000,
+    0.000001,
+    100,
+    10000
   };
 
   auto rays = camera.generateRays();
 
   std::vector<RGB> pixels(rays.size());
 
-  int total_threads = std::thread::hardware_concurrency();
+  int total_threads = std::thread::hardware_concurrency() - 4;
   std::cout << "Using " << total_threads << " threads.\n";
 
   Decimal chunk_size = rays.size() / Decimal(total_threads);
