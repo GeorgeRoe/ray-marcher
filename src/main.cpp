@@ -18,8 +18,8 @@ int main() {
   Scene scene;
 
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 125, 15),
-    Material(RGB(255, 255, 255), 0.4, {0, 0, 0})
+    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 100, 15),
+    Material(RGB(255, 255, 255), 0, {0, 0, 0})
   ));
 
   scene.addObject(Object(
@@ -32,7 +32,7 @@ int main() {
   ));
 
   IntegerVector2 resolution = {80, 80};
-  int scale = 100;
+  int scale = 3;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
@@ -44,80 +44,45 @@ int main() {
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
   MarchOptions march_options{
-    10000000,
-    0.000001,
+    10000,
+    0.001,
     15,
     6000 
   };
 
   auto rays = camera.generateRays();
 
-  std::vector<RGB> pixels(rays.size());
+  const size_t total_pixels = rays.size();
+  std::vector<RGB> pixels(total_pixels);
 
-  int total_threads = std::thread::hardware_concurrency();
+  const int total_threads = std::thread::hardware_concurrency();
   std::cout << "Using " << total_threads << " threads.\n";
 
-  Decimal chunk_size = rays.size() / Decimal(total_threads);
-
-  std::vector<size_t> starting_indexes = {};
-  for (Decimal i = 0; i < rays.size(); i += chunk_size) {
-    starting_indexes.push_back(static_cast<size_t>(i));
-  }
-
-  std::vector<size_t> ending_indexes = {};
-  for (size_t i = 0; i < starting_indexes.size(); ++i) {
-    if (i == 0) continue;
-
-    ending_indexes.push_back(starting_indexes.at(i) - 1);
-  }
-  ending_indexes.push_back(rays.size() - 1);
-
-  std::vector<std::pair<size_t, size_t>> indexes;
-  for (size_t i = 0; i < starting_indexes.size(); ++i) {
-    indexes.push_back({starting_indexes.at(i), ending_indexes.at(i)});
-  }
-
-  srand(0);
-  std::vector<size_t> randomness(pixels.size());
-  for (size_t i = 0; i < pixels.size(); ++i) {
-    randomness.at(i) = i;
-  }
-
-  for (size_t i = 0; i < pixels.size(); ++i) {
-    size_t random = rand() % pixels.size();
-
-    size_t temp = randomness.at(i);
-    randomness.at(i) = randomness.at(random);
-    randomness.at(random) = temp;
-  }
-
-  size_t processed_rays = 0;
-  const size_t total_rays = rays.size();
+  size_t drawn_pixels = 0;
+  
   std::cout << "Progress: 0%\n";
 
-  int width = camera.getScreenSize().x;
-  int height = camera.getScreenSize().y;
-  int channels = 3;
-
-  size_t write_frequency = 1;
-
   std::vector<std::thread> threads;
-  for (const auto& index_bounds: indexes) {
-    threads.emplace_back([&]() {
-      for (size_t i = index_bounds.first; i <= index_bounds.second; ++i) {
-        pixels.at(randomness.at(i)) = rays.at(randomness.at(i)).march(scene, march_options).toRGB();
-        processed_rays++;
+  for (int thread_index = 0; thread_index < total_threads; ++thread_index) {
+    threads.emplace_back([thread_index, &rays, &pixels, &scene, &march_options, total_threads, total_pixels, &drawn_pixels]() {
+      bool in_bounds = true;
+      size_t leap_counter = 0;
+      while (in_bounds) {
+        size_t pixel_index = leap_counter * total_threads + thread_index;
 
-        if (processed_rays % (total_rays / 100) == 0) {
-          size_t progress = processed_rays * 100 / total_rays;
-          std::cout << "Progress: " << progress << "%\n";
-          if (progress % write_frequency == 0) {
-            std::cout << "image written\n";
-            std::string filename = "output-" + std::to_string(progress) + ".png";
-            stbi_write_png(filename.c_str(), width, height, channels,
-                           static_cast<void *>(pixels.data()), width * channels);
+        if (pixel_index >= pixels.size()) {
+          in_bounds = false;
+        } else {
+          pixels.at(pixel_index) = rays.at(pixel_index).march(scene, march_options).toRGB();
+          drawn_pixels++;
+    
+          if (drawn_pixels % (total_pixels / 100) == 0) {
+            size_t progress = drawn_pixels * 100 / total_pixels;
+            std::cout << "Progress: " << progress << "%\n";
           }
         }
+
+        leap_counter++;
       }
     });
   }
@@ -125,9 +90,13 @@ int main() {
   for (auto& thread : threads) {
     thread.join();
   }
-  std::cout << "\rProgress: 100%\n";
 
   std::cout << "final image written\n";
+
+  const int width = camera.getScreenSize().x;
+  const int height = camera.getScreenSize().y;
+  const int channels = 3;
+
   stbi_write_png("output.png", width, height, channels,
                  static_cast<void *>(pixels.data()), width * channels);
 
