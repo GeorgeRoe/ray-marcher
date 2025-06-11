@@ -20,16 +20,20 @@ int main() {
 
   scene.addObject(Object(
     std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 100, 15),
-    Material(RGB(150, 250, 50), 0, {0, 0, 0})
+    Material(RGB(255, 255, 255), 0.4, {0, 0, 0})
   ));
 
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 0), 0.5),
-    Material({0, 0, 0}, 0.0, RGB(255, 255, 255))
+    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 1), 0.5),
+    Material({0, 0, 0}, 0.0, RGB(0, 255, 255))
+  ));
+  scene.addObject(Object(
+    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, -1), 0.5),
+    Material({0, 0, 0}, 0.0, RGB(255, 0, 255))
   ));
 
   IntegerVector2 resolution = {80, 80};
-  int scale = 100;
+  int scale = 1;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
@@ -41,10 +45,10 @@ int main() {
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
   MarchOptions march_options{
-    1000000,
-    0.000001,
-    100,
-    10000
+    10000000,
+    0.0001,
+    15,
+    5000 
   };
 
   auto rays = camera.generateRays();
@@ -92,14 +96,27 @@ int main() {
   const size_t total_rays = rays.size();
   std::cout << "Progress: 0%\n";
 
+  int width = camera.getScreenSize().x;
+  int height = camera.getScreenSize().y;
+  int channels = 3;
+
+  size_t write_frequency = 10;
+
   std::vector<std::thread> threads;
   for (const auto& index_bounds: indexes) {
     threads.emplace_back([&]() {
       for (size_t i = index_bounds.first; i <= index_bounds.second; ++i) {
         pixels.at(randomness.at(i)) = rays.at(randomness.at(i)).march(scene, march_options).toRGB();
         processed_rays++;
-        if (processed_rays % (total_rays / 100) == 0 || processed_rays == total_rays) {
-          std::cout << "Progress: " << (processed_rays * 100 / total_rays) << "%\n";
+
+        if (processed_rays % (total_rays / 100) == 0) {
+          size_t progress = processed_rays * 100 / total_rays;
+          std::cout << "Progress: " << progress << "%\n";
+          if (progress % write_frequency == 0) {
+            std::cout << "image written\n";
+            stbi_write_png(std::format("output-{}.png", processed_rays * 100 / total_rays).c_str(), width, height, channels,
+                           static_cast<void *>(pixels.data()), width * channels);
+          }
         }
       }
     });
@@ -110,10 +127,7 @@ int main() {
   }
   std::cout << "\rProgress: 100%\n";
 
-  int width = camera.getScreenSize().x;
-  int height = camera.getScreenSize().y;
-  int channels = 3;
-
+  std::cout << "final image written\n";
   stbi_write_png("output.png", width, height, channels,
                  static_cast<void *>(pixels.data()), width * channels);
 

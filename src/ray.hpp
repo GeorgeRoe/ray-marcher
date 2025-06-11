@@ -45,7 +45,9 @@ public:
       travel(result ? result->minimum_signed_distance : std::numeric_limits<Decimal>::max());
     }
 
-    if (!hit) return Color();
+    if (!hit) {
+      return Color();
+    }
 
     const Object& object = hit->object.get();
     const Material& material = object.getMaterial();
@@ -58,10 +60,6 @@ public:
 
     Color direct_light;
     for (const Object& other_object : scene.getObjects()) {
-
-      if (&other_object == &object) {
-        continue;
-      }
 
       if (!other_object.getMaterial().emissive()) {
         continue;
