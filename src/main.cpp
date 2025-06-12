@@ -20,30 +20,30 @@ int main() {
 
   scene.addObject(Object(
     SphereGeometry(DecimalVector3(5, 0, 0), 1),
-    Material({1,1,1}, 0.35, RGB(0, 0, 0))
+    Material({1,1,1}, 1, RGB(0, 0, 0))
   ));
   scene.addObject(Object(
     SphereGeometry(DecimalVector3(2, 1.5, 0), 0.5),
     Material({}, 0, RGB(255, 255, 255))
   ));
 
-  const Decimal wall_reflectivity = 0.8;
+  const Decimal wall_reflectivity = 0.95;
 
   scene.addObject(Object(
     PlaneGeometry(DecimalVector3(-1, 0, 0), DecimalVector3(10, 0, 0)),
     Material(RGB(255, 0, 0), wall_reflectivity, {})
   ));
   scene.addObject(Object(
-    PlaneGeometry(DecimalVector3(1, 0, 0), DecimalVector3(-1, 0, 0)),
+    PlaneGeometry(DecimalVector3(1, 0, 0), DecimalVector3(-5, 0, 0)),
     Material(RGB(255, 0, 0), wall_reflectivity, {})
   ));
 
   scene.addObject(Object(
-    PlaneGeometry(DecimalVector3(0, 0, -1), DecimalVector3(0, 0, 10)),
+    PlaneGeometry(DecimalVector3(0, 0, -1), DecimalVector3(0, 0, 5)),
     Material(RGB(0, 255, 0), wall_reflectivity, {})
   ));
   scene.addObject(Object(
-    PlaneGeometry(DecimalVector3(0, 0, 1), DecimalVector3(0, 0, -10)),
+    PlaneGeometry(DecimalVector3(0, 0, 1), DecimalVector3(0, 0, -5)),
     Material(RGB(0, 255, 0), wall_reflectivity, {})
   ));
 
@@ -56,22 +56,23 @@ int main() {
     Material(RGB(0, 0, 255), wall_reflectivity, {})
   ));
 
-  Decimal aspect_ratio = 1.78;  
-  int output_width = 400;
-  int fov_degrees = 120;
+  const Decimal aspect_ratio = 1.77778;  
+  const int output_width = 2000;
+  const int fov_degrees = 90;
 
-  IntegerVector2 resolution(output_width, static_cast<int>(output_width / aspect_ratio));
+  const IntegerVector2 resolution(output_width, static_cast<int>(output_width / aspect_ratio));
 
-  Decimal horizontal_fov = fov_degrees * (Decimal(M_PI) / Decimal(180));
-  DecimalVector2 fov(horizontal_fov, horizontal_fov / aspect_ratio);
+  const Decimal horizontal_fov = fov_degrees * (Decimal(M_PI) / Decimal(180));
+  const Decimal vertical_fov = horizontal_fov / aspect_ratio;
+  const DecimalVector2 fov(horizontal_fov, vertical_fov);
 
-  Camera camera({}, {1, 0, 0}, resolution, fov);
+  const Camera camera({-4.9, 0, 0}, {1, 0, 0}, resolution, fov);
 
-  MarchOptions march_options{
+  const MarchOptions march_options{
     1000,
     0.001,
     1000,
-    500 
+    20
   };
 
   auto rays = camera.generateRays();
@@ -84,8 +85,6 @@ int main() {
 
   std::atomic<size_t> drawn_pixels(0);
   
-  std::cout << "Progress: 0%\n";
-
   std::vector<std::thread> threads;
   for (int thread_index = 0; thread_index < total_threads; ++thread_index) {
     threads.emplace_back([thread_index, &rays, &pixels, &scene, &march_options, total_threads, total_pixels, &drawn_pixels]() {
@@ -115,7 +114,7 @@ int main() {
     thread.join();
   }
 
-  std::cout << "final image written\n";
+  std::cout << "image written\n";
 
   const int width = camera.getScreenSize().x;
   const int height = camera.getScreenSize().y;
