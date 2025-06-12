@@ -4,6 +4,7 @@
 #include "src/scene.hpp"
 #include "vector3.hpp"
 #include <iostream>
+#include <limits>
 
 class Ray {
 public:
@@ -103,7 +104,7 @@ public:
     Color reflected_color;
     if (material.reflectivity > 0) {
       DecimalVector3 reflection_direction = direction_ - (2 * (direction_.dot(normal)) * normal);
-      Ray reflected_ray(position_ + normal * march_options.hit_threshold * 1.1, reflection_direction);
+      Ray reflected_ray(position_ + normal * march_options.hit_threshold * (1 + std::numeric_limits<Decimal>::min() * 1e4), reflection_direction);
       reflected_color = reflected_ray.march(scene, march_options, depth + 1);
     }
 
