@@ -1,9 +1,9 @@
 #pragma once
 
+#include "src/geometry.hpp"
 #include "src/march_options.hpp"
 #include "src/scene.hpp"
 #include "vector3.hpp"
-#include <iostream>
 #include <limits>
 
 class Ray {
@@ -60,7 +60,7 @@ public:
     DecimalVector3 normal = scene.estimateNormal(getPosition());
 
     Color direct_light;
-    for (const Object& other_object : scene.getObjects()) {
+    for (const auto& other_object : scene.getObjects()) {
 
       if (!other_object.getMaterial().emissive()) {
         continue;
@@ -68,7 +68,7 @@ public:
 
       DecimalVector3 shadow_ray_position = position_ + normal * march_options.hit_threshold * 1.1;
 
-      DecimalVector3 delta = other_object.getGeometryRef().centroid() - shadow_ray_position;
+      DecimalVector3 delta = GeometryVisitor::getCentroid(other_object.getGeometry()) - shadow_ray_position;
       DecimalVector3 direction_to_light = delta.normalised();
 
       bool visible = true;

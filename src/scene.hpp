@@ -2,13 +2,12 @@
 
 #include "src/object.hpp"
 #include "src/vector3.hpp"
-#include <functional>
 #include <limits>
 #include <optional>
 #include <vector>
 
 struct SceneQueryResult {
-  std::reference_wrapper<Object> object;
+  std::reference_wrapper<const Object> object;
   Decimal minimum_signed_distance;
 };
 
@@ -16,15 +15,15 @@ class Scene {
 public:
   Scene() : objects_() {}
 
-  void addObject(Object&& object) {
+  void addObject(Object object) {
     objects_.push_back(std::move(object));
   }
 
   std::vector<SceneQueryResult> objectsMinimumSignedDistancesFrom(DecimalVector3 point) {
     std::vector<SceneQueryResult> results;
 
-    for (Object& object : objects_) {
-      Decimal distance = object.getGeometryRef().minimumSignedDistanceFrom(point);
+    for (const auto& object : objects_) {
+      Decimal distance = GeometryVisitor::getMinimumSignedDistanceFrom(object.getGeometry(), point);
       results.push_back({object, distance});
     }
 

@@ -1,13 +1,12 @@
 #pragma once
 
-#include "geometry/geometry.hpp"
+#include "geometry.hpp"
 #include "src/material.hpp"
-#include <memory>
 
 class Object {
 public:
-  Object(std::unique_ptr<Geometry> geometry, Material material)
-      : geometry_(std::move(geometry)), material_(material) {}
+  Object(GeometryVariant geometry, Material material)
+      : geometry_(geometry), material_(material) {}
 
   Object(Object &&) = default;
   Object &operator=(Object &&) = default;
@@ -15,11 +14,11 @@ public:
   Object(const Object &) = delete;
   Object &operator=(const Object &) = delete;
 
-  const Geometry &getGeometryRef() const { return *geometry_; }
+  const GeometryVariant& getGeometry() const { return geometry_; }
 
-  const Material getMaterial() const { return material_; }
+  const Material& getMaterial() const { return material_; }
 
 private:
-  std::unique_ptr<Geometry> geometry_;
+  GeometryVariant geometry_;
   Material material_;
 };

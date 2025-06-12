@@ -1,6 +1,6 @@
 #pragma once
 
-#include "geometry.hpp"
+#include "base_geometry.hpp"
 
 class SphereGeometry : public Geometry {
 public:
