@@ -7,6 +7,7 @@
 #include "src/march_options.hpp"
 #include "src/material.hpp"
 #include "vector3.hpp"
+#include <atomic>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -26,7 +27,7 @@ int main() {
     Material({}, 0, RGB(255, 255, 255))
   ));
 
-  const Decimal wall_reflectivity = 0;
+  const Decimal wall_reflectivity = 0.8;
 
   scene.addObject(Object(
     PlaneGeometry(DecimalVector3(-1, 0, 0), DecimalVector3(10, 0, 0)),
@@ -55,15 +56,14 @@ int main() {
     Material(RGB(0, 0, 255), wall_reflectivity, {})
   ));
 
-  IntegerVector2 resolution = {80, 45};
-  int scale = 10;
-  resolution.x *= scale;
-  resolution.y *= scale;
-  Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
+  Decimal aspect_ratio = 1.78;  
+  int output_width = 400;
+  int fov_degrees = 120;
 
-  Decimal horizontal_fov = 120 * (M_PI / 180.0);
-  Decimal vertical_fov = horizontal_fov * aspect_ratio;
-  DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
+  IntegerVector2 resolution(output_width, static_cast<int>(output_width / aspect_ratio));
+
+  Decimal horizontal_fov = fov_degrees * (Decimal(M_PI) / Decimal(180));
+  DecimalVector2 fov(horizontal_fov, horizontal_fov / aspect_ratio);
 
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
@@ -82,7 +82,7 @@ int main() {
   const int total_threads = std::thread::hardware_concurrency();
   std::cout << "Using " << total_threads << " threads.\n";
 
-  size_t drawn_pixels = 0;
+  std::atomic<size_t> drawn_pixels(0);
   
   std::cout << "Progress: 0%\n";
 
@@ -98,7 +98,7 @@ int main() {
           in_bounds = false;
         } else {
           pixels.at(pixel_index) = rays.at(pixel_index).march(scene, march_options).toRGB();
-          drawn_pixels++;
+          drawn_pixels.fetch_add(1, std::memory_order_relaxed);
     
           if (drawn_pixels % (total_pixels / 100) == 0) {
             size_t progress = drawn_pixels * 100 / total_pixels;
