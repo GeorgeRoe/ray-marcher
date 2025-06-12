@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "ray.hpp"
 #include "vector2.hpp"
 #include "vector3.hpp"
@@ -10,56 +8,43 @@ class Camera {
 public:
   Camera(DecimalVector3 position, DecimalVector3 direction,
          IntegerVector2 screen_size, DecimalVector2 fov)
-      : position_(position), direction_(direction.normalised()),
-        screen_size_(screen_size), fov_(fov) {}
+      : position_(position), forward_(direction.normalised()),
+        right_(forward_.cross(DecimalVector3(0, 1, 0)).normalised()),
+        up_(right_.cross(forward_).normalised()), screen_size_(screen_size),
+        fov_(fov),
+        half_screen_size_(std::tan(fov.x * static_cast<Decimal>(0.5)),
+                          std::tan(fov.y * static_cast<Decimal>(0.5))),
+        pixel_((2 * half_screen_size_.x) / screen_size.x,
+               (2 * half_screen_size_.y) / screen_size.y) {}
 
-  std::vector<Ray> generateRays() const {
-    std::vector<Ray> rays;
-    rays.reserve(screen_size_.x * screen_size_.y);
-
-    Decimal half_width = std::tan(fov_.x * static_cast<Decimal>(0.5));
-    Decimal half_height = std::tan(fov_.y * static_cast<Decimal>(0.5));
-
-    Decimal pixel_width = (2 * half_width) / screen_size_.x;
-    Decimal pixel_height = (2 * half_height) / screen_size_.y;
-
-    DecimalVector3 forward = direction_;
-    DecimalVector3 right = forward.cross(DecimalVector3(0, 1, 0)).normalised();
-    DecimalVector3 up = right.cross(forward).normalised();
-
-    for (int y = 0; y < screen_size_.y; ++y) {
-      for (int x = 0; x < screen_size_.x; ++x) {
-        Decimal px = (x + 0.5f) * pixel_width - half_width;
-        Decimal py = half_height - (y + 0.5f) * pixel_height;
-
-        DecimalVector3 ray_dir = (forward + right * px + up * py).normalised();
-        rays.emplace_back(position_, ray_dir);
-      }
-    }
-
-    return rays;
+  Ray generateRay(const int& x, const int& y) const {
+    Decimal px = (x + Decimal(0.5)) * pixel_.x - half_screen_size_.x;
+    Decimal py = half_screen_size_.y - (y + Decimal(0.5)) * pixel_.y;
+    DecimalVector3 ray_direction = (forward_ + right_ * px + up_ * py).normalised();
+    return Ray(position_, ray_direction);
   }
 
-  DecimalVector3 getPosition() const {
-    return position_;
+  Ray generateRay(const IntegerVector2& pixel) const {
+    return generateRay(pixel.x, pixel.y);
   }
 
-  DecimalVector3 getDirection() const {
-    return direction_;
-  }
-
-  IntegerVector2 getScreenSize() const {
-    return screen_size_;
-  }
-
-  DecimalVector2 getFov() const {
-    return fov_;
+  IntegerVector2 indexToCoordinate(const size_t& index) const {
+    return IntegerVector2(
+      static_cast<int>(index % screen_size_.x),
+      static_cast<int>(index / screen_size_.x)
+    );
   }
 
 private:
   DecimalVector3 position_;
-  DecimalVector3 direction_;
+
+  DecimalVector3 forward_;
+  DecimalVector3 right_;
+  DecimalVector3 up_;
 
   IntegerVector2 screen_size_;
   DecimalVector2 fov_;
+
+  DecimalVector2 half_screen_size_;
+  DecimalVector2 pixel_;
 };

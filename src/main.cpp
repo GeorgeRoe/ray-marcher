@@ -20,7 +20,7 @@ int main() {
 
   scene.addObject(Object(
     SphereGeometry(DecimalVector3(5, 0, 0), 1),
-    Material({1,1,1}, 1, RGB(0, 0, 0))
+    Material({1,1,1}, 0.3, RGB(0, 0, 0))
   ));
   scene.addObject(Object(
     SphereGeometry(DecimalVector3(2, 1.5, 0), 0.5),
@@ -57,7 +57,7 @@ int main() {
   ));
 
   const Decimal aspect_ratio = 1.77778;  
-  const int output_width = 2000;
+  const int output_width = 400;
   const int fov_degrees = 90;
 
   const IntegerVector2 resolution(output_width, static_cast<int>(output_width / aspect_ratio));
@@ -75,9 +75,7 @@ int main() {
     20
   };
 
-  auto rays = camera.generateRays();
-
-  const size_t total_pixels = rays.size();
+  const size_t total_pixels = resolution.x * resolution.y;
   std::vector<RGB> pixels(total_pixels);
 
   const int total_threads = std::thread::hardware_concurrency();
@@ -87,16 +85,17 @@ int main() {
   
   std::vector<std::thread> threads;
   for (int thread_index = 0; thread_index < total_threads; ++thread_index) {
-    threads.emplace_back([thread_index, &rays, &pixels, &scene, &march_options, total_threads, total_pixels, &drawn_pixels]() {
+    threads.emplace_back([thread_index, &camera, &pixels, &scene, &march_options, total_threads, total_pixels, &drawn_pixels]() {
       bool in_bounds = true;
       size_t leap_counter = 0;
       while (in_bounds) {
         size_t pixel_index = leap_counter * total_threads + thread_index;
 
-        if (pixel_index >= pixels.size()) {
+        if (pixel_index >= total_pixels) {
           in_bounds = false;
         } else {
-          pixels.at(pixel_index) = rays.at(pixel_index).march(scene, march_options).toRGB();
+          const IntegerVector2 pixel = camera.indexToCoordinate(pixel_index);
+          pixels.at(pixel_index) = camera.generateRay(pixel).march(scene, march_options).toRGB();
           drawn_pixels.fetch_add(1, std::memory_order_relaxed);
     
           if (drawn_pixels % (total_pixels / 100) == 0) {
@@ -116,12 +115,10 @@ int main() {
 
   std::cout << "image written\n";
 
-  const int width = camera.getScreenSize().x;
-  const int height = camera.getScreenSize().y;
   const int channels = 3;
 
-  stbi_write_png("output.png", width, height, channels,
-                 static_cast<void *>(pixels.data()), width * channels);
+  stbi_write_png("output.png", resolution.x, resolution.y, channels,
+                 static_cast<void *>(pixels.data()), resolution.x * channels);
 
   return 0;
 }
