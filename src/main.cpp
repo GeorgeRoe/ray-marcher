@@ -3,7 +3,8 @@
 #include "rgb.hpp"
 #include "scene.hpp"
 #include "src/geometry/sphere_geometry.hpp"
-#include "src/geometry/mandelbulb_geometry.hpp"
+#include "src/geometry/triangle_geometry.hpp"
+#include "src/geometry/plane_geometry.hpp"
 #include "src/march_options.hpp"
 #include "src/material.hpp"
 #include "vector3.hpp"
@@ -12,42 +13,97 @@
 #include "stb_image_write.h"
 
 #include <thread>
-#include <utility>
 
 int main() {
   Scene scene;
 
+  // scene.addObject(Object(
+  //   std::make_unique<TriangleGeometry>(
+  //     DecimalVector3(5, 0, 0),
+  //     DecimalVector3(3, 1, 0),
+  //     DecimalVector3(5, 1, 1)
+  //   ),
+  //   Material(RGB(255, 255, 255), 0.0, RGB(0, 0, 0))
+  // ));
+  //
+  // scene.addObject(Object(
+  //   std::make_unique<SphereGeometry>(DecimalVector3(2, 0, 0), 0.25),
+  //   Material(RGB(255, 255, 255), 0.0, RGB(0,0,0))
+  // ));
+  //
+  // scene.addObject(Object(
+  //   std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 1), 0.5),
+  //   Material({0, 0, 0}, 0.0, RGB(255, 0, 0))
+  // ));
+  // scene.addObject(Object(
+  //   std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 2), 0.5),
+  //   Material({0, 0, 0}, 0.0, RGB(0, 255, 0))
+  // ));
+
   scene.addObject(Object(
-    std::make_unique<MandelbulbGeometry>(DecimalVector3(3, 0, 0), 1, 100, 15),
-    Material(RGB(255, 255, 255), 0, {0, 0, 0})
+    std::make_unique<SphereGeometry>(DecimalVector3(5, 0, 0), 1),
+    Material({1,1,1}, 0.35, RGB(0, 0, 0))
+  ));
+  scene.addObject(Object(
+    std::make_unique<SphereGeometry>(DecimalVector3(2, 1.5, 0), 0.5),
+    Material({}, 0, RGB(255, 255, 255))
+  ));
+
+  // scene.addObject(Object(
+  //   std::make_unique<TriangleGeometry>(
+  //     DecimalVector3(10, -10, 0),
+  //     DecimalVector3(10, -10, -10),
+  //     DecimalVector3(10, 0, -10)
+  //   ),
+  //   Material(RGB(255, 255, 255), 0.0, RGB(0, 0, 0))
+  // ));
+  
+  const Decimal wall_reflectivity = 0;
+
+  scene.addObject(Object(
+    std::make_unique<PlaneGeometry>(DecimalVector3(-1, 0, 0), DecimalVector3(10, 0, 0)),
+    Material(RGB(255, 0, 0), wall_reflectivity, {})
+  ));
+  scene.addObject(Object(
+    std::make_unique<PlaneGeometry>(DecimalVector3(1, 0, 0), DecimalVector3(-1, 0, 0)),
+    Material(RGB(255, 0, 0), wall_reflectivity, {})
   ));
 
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, 1), 0.5),
-    Material({0, 0, 0}, 0.0, RGB(0, 255, 255))
+    std::make_unique<PlaneGeometry>(DecimalVector3(0, 0, -1), DecimalVector3(0, 0, 10)),
+    Material(RGB(0, 255, 0), wall_reflectivity, {})
   ));
   scene.addObject(Object(
-    std::make_unique<SphereGeometry>(DecimalVector3(0, 1, -1), 0.5),
-    Material({0, 0, 0}, 0.0, RGB(255, 0, 255))
+    std::make_unique<PlaneGeometry>(DecimalVector3(0, 0, 1), DecimalVector3(0, 0, -10)),
+    Material(RGB(0, 255, 0), wall_reflectivity, {})
   ));
 
-  IntegerVector2 resolution = {80, 80};
-  int scale = 3;
+  scene.addObject(Object(
+    std::make_unique<PlaneGeometry>(DecimalVector3(0, -1, 0), DecimalVector3(0, 5, 0)),
+    Material(RGB(0, 0, 255), wall_reflectivity, {})
+  ));
+  scene.addObject(Object(
+    std::make_unique<PlaneGeometry>(DecimalVector3(0, 1, 0), DecimalVector3(0, -5, 0)),
+    Material(RGB(0, 0, 255), wall_reflectivity, {})
+  ));
+
+  IntegerVector2 resolution = {80, 45};
+  int scale = 10;
   resolution.x *= scale;
   resolution.y *= scale;
   Decimal aspect_ratio = static_cast<Decimal>(resolution.y) / resolution.x;
 
-  Decimal horizontal_fov = 50 * (M_PI / 180.0);
+  Decimal horizontal_fov = 90 * (M_PI / 180.0);
   Decimal vertical_fov = horizontal_fov * aspect_ratio;
   DecimalVector2 fov((Decimal(horizontal_fov)), Decimal(vertical_fov));
 
   Camera camera({}, {1, 0, 0}, resolution, fov);
 
   MarchOptions march_options{
-    10000,
+    1000,
     0.001,
-    15,
-    6000 
+    1000,
+    500 
   };
 
   auto rays = camera.generateRays();
